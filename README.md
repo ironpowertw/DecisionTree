@@ -61,4 +61,11 @@ First one is the LIBSVM sparse training data location.
 
 Second is EPS, which is the confusion rate of the decision tree. It can be set between 0~1, both extreme values are not recommended.
 
+Also, if you want to save the produced decision tree function into a file, do it by
+
+```
+./tree </location/of/training/file> EPS >> </location/of/your/function>
+```
+
+
 If you need to try, there is two example training file inside. First one is `heart.train`, which is also the example file of the `LIBSVM` library. The second file `self.train` is a much smaller file created by me, which can be used to debug the code.
