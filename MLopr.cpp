@@ -158,71 +158,47 @@ vector<DNode> ReadData(istream& T){
 	}
 	return HData;
 }
-void HeapSort(vector<DNode>& tar, int head, int tail, const int findex) {
-	for (int i = head + 1; i <= tail; i++) {
-		//cout << "dealing with:\t\t" << i << endl;
-		//cout << "key value:\t\t" << tar[i].factor[ind] << endl;
-		int j = i;
 
-		//sort to max-heap 
-		while (j > head) {
-			//cout << "compare to:\t\t" << (j-1)/2 << endl;
-			//cout << "Compare key:\t\t" << tar[(j-1)/2].factor[ind] << endl;
-			if (tar[((j - head) - 1) / 2 + head].factor[findex] < tar[j].factor[findex]) {
-				//cout << "***********SWAP***************" << endl;
-				swap(tar[((j - head) - 1) / 2 + head], tar[j]);
-			}
-			else break;
-			j = ((j - head) - 1) / 2 + head;
-		}
-	}
-
-	//heap sort
-	for (int i = tail; i > head; i--) {
-		//cout << "dealing with:\t\t" << i << endl;
-
-		swap(tar[head], tar[i]);
-		SortHeapify(tar, head, head, i - 1, findex);
-	}
-}
-void SortHeapify(vector<DNode>& tar, int head, int current, int lim, int findex) {
-
-	//Terminating Condition
-	if ((current - head) * 2 + 1 + head > lim) return;
-	else if ((current - head) * 2 + 2 + head > lim) {
+void maxHeapify(vector<DNode>& tar, int head, int tail, int current, const int findex) {
+	if ((current - head) * 2 + 1 + head > tail) return;
+	else if ((current - head) * 2 + 2 + head > tail) {
 		if (tar[current].factor[findex] < tar[(current - head) * 2 + 1 + head].factor[findex]) {
 			swap(tar[current], tar[(current - head) * 2 + 1 + head]);
-			SortHeapify(tar, head, (current - head) * 2 + 1 + head, lim, findex);
+			maxHeapify(tar, head, tail, (current - head) * 2 + 1 + head, findex);
 		}
+		else return;
 	}
 	else {
-		if (tar[(current - head) * 2 + 1 + head].factor[findex] > tar[(current - head) * 2 + 2 + head].factor[findex]) {
-			if (tar[current].factor[findex] < tar[(current - head) * 2 + 1 + head].factor[findex]) {
-				swap(tar[current], tar[(current - head) * 2 + 1 + head]);
-				SortHeapify(tar, head, (current - head) * 2 + 1 + head, lim, findex);
-			}
-			else if (tar[current].factor[findex] < tar[(current - head) * 2 + 2 + head].factor[findex]) {
-				swap(tar[current], tar[(current - head) * 2 + 2 + head]);
-				SortHeapify(tar, head, (current - head) * 2 + 2 + head, lim, findex);
-			}
-			else return;
+		if (tar[current].factor[findex] > tar[(current - head) * 2 + 1 + head].factor[findex] \
+		 && tar[current].factor[findex] > tar[(current - head) * 2 + 2 + head].factor[findex]) {
+			return;
+		}
+		else if (tar[current].factor[findex] > tar[(current - head) * 2 + 1 + head].factor[findex] \
+			   > tar[current].factor[findex] > tar[(current - head) * 2 + 2 + head].factor[findex]) {
+			swap(tar[current], tar[(current - head) * 2 + 1 + head]);
+			maxHeapify(tar, head, tail, (current - head) * 2 + 1 + head, findex);
 		}
 		else {
-			if (tar[current].factor[findex] < tar[(current - head) * 2 + 2 + head].factor[findex]) {
-				swap(tar[current], tar[(current - head) * 2 + 2 + head]);
-				SortHeapify(tar, head, (current - head) * 2 + 2 + head, lim, findex);
-			}
-			else if (tar[current].factor[findex] < tar[(current - head) * 2 + 1 + head].factor[findex]) {
-				swap(tar[current], tar[(current - head) * 2 + 1 + head]);
-				SortHeapify(tar, head, (current - head) * 2 + 1 + head, lim, findex);
-			}
-			else return;
+			swap(tar[current], tar[(current - head) * 2 + 2 + head]);
+			maxHeapify(tar, head, tail, (current - head) * 2 + 2 + head, findex);
 		}
 	}
 }
+
+void heapSort(vector<DNode>& tar, int head, int tail, int findex) {
+	// build heap
+	for (int i = tail; i >= head; i--) {
+		maxHeapify(tar, head, tail, i, findex);
+	}
+	// heap sort
+	for (int i = tail; i > head; i--) {
+		swap(tar[head], tar[i]);
+		maxHeapify(tar, head, --tail, head, findex);
+	}
+}
+
 DTree* DecisionTree(vector<DNode>& tar, int head, int tail, double EPS) {
 	//PrintStar(20);
-
 	double* ans = MinConfusionCal(tar, head, tail);
 	//double* ans = MaxConfusionCal(tar, head, tail);
 	//double* ans = RandomConfusionCal(tar, head, tail);
@@ -301,8 +277,7 @@ double* MinConfusionCal(vector<DNode>& tar, int head, int tail) {
 			//printf("=================ALL ELEMENTS SAME AT FINDEX #%d=================\n", findex);
 			continue;
 		}
-		HeapSort(tar, head, tail, findex);
-
+		heapSort(tar, head, tail, findex);
 		//calculation begin
 		int mindex = 0;
 		double mthres = 0;
@@ -366,7 +341,7 @@ double* MinConfusionCal(vector<DNode>& tar, int head, int tail) {
 			minthres = mthres;
 		}
 	}
-	HeapSort(tar, head, tail, minfindex);
+	heapSort(tar, head, tail, minfindex);
 	double* ans = new double[4];
 	// 0: min_findex     1: min_index
 	// 2: threshold      3: confuse
@@ -392,7 +367,7 @@ double* MaxConfusionCal(vector<DNode>& tar, int head, int tail) {
 			//printf("=================ALL ELEMENTS SAME AT FINDEX #%d=================\n", findex);
 			continue;
 		}
-		HeapSort(tar, head, tail, findex);
+		heapSort(tar, head, tail, findex);
 
 		//calculation begin
 		int mindex = 0;
@@ -456,7 +431,7 @@ double* MaxConfusionCal(vector<DNode>& tar, int head, int tail) {
 			maxthres = mthres;
 		}
 	}
-	HeapSort(tar, head, tail, maxfindex);
+	heapSort(tar, head, tail, maxfindex);
 	double* ans = new double[4];
 	// 0: min_findex     1: min_index
 	// 2: threshold      3: confuse
@@ -476,7 +451,7 @@ double* RandomConfusionCal(vector<DNode>& tar, int head, int tail) {
 		if (!SameFactor(tar, head, tail, findex)) break;
 		
 	}
-	HeapSort(tar, head, tail, findex);
+	heapSort(tar, head, tail, findex);
 	
 	int index = (head + tail) / 2;
 	if (SameFactor(tar, index, tail, findex)) {
